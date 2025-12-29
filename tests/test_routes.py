@@ -24,6 +24,7 @@ HTTPS_ENVIRON = {'wsgi.url_scheme': 'https'}
 #  T E S T   C A S E S
 ######################################################################
 class TestAccountService(TestCase):
+  def test_cors_security(self):
     """Account Service Tests"""
      def test_security_headers(self):
      """It should return security headers"""
@@ -136,3 +137,9 @@ class TestAccountService(TestCase):
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     # ADD YOUR TEST CASES HERE ...
+  def test_cors_security(self):
+        """It should return a CORS header"""
+        response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Check for the CORS header
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
