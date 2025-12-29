@@ -24,6 +24,7 @@ RUN curl -LO https://github.com/tektoncd/cli/releases/download/v0.18.0/tkn_0.18.
     tar xvzf tkn_0.18.0_Linux_x86_64.tar.gz -C /usr/local/bin/ tkn && \
     ln -s /usr/local/bin/tkn /usr/bin/tkn
 
+
 # Install OpenShift CLI
 RUN curl -LO https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz && \
     tar xvzf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz && \
@@ -54,3 +55,21 @@ ENV TERM=xterm-256color
 
 # Become a regular user
 USER $USERNAME
+
+FROM python:3.9-slim
+
+# Create working folder and install dependencies
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application contents
+COPY service/ ./service/
+
+# Switch to a non-root user
+RUN useradd --uid 1000 theia && chown -R theia /app
+USER theia
+
+# Run the service
+EXPOSE 8080
+CMD ["gunicorn", "--bind=0.0.0.0:8080", "--log-level=info", "service:app"]
